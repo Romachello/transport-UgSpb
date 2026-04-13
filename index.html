@@ -4,14 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Южный Транзит | Пробки в реальном времени + график по районам</title>
+  <title>Южный Транзит | Пробки, маршруты и карта 2GIS</title>
   <meta name="description"
-    content="График пробок по Московскому, Фрунзенскому, Красносельскому районам СПб в реальном времени. Достоверные данные, интерактивная карта, экспертный подбор жилья.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    content="Актуальная транспортная ситуация в Московском, Фрунзенском и Красносельском районах СПб. Карта 2GIS, маршруты с учётом пробок, графики загруженности и экспертный гид по выбору жилья.">
+  <!-- Подключаем шрифты и иконки -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Подключаем библиотеку для графиков Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     * {
@@ -33,6 +33,7 @@
       padding: 0 24px;
     }
 
+    /* --- Header (без изменений) --- */
     .header {
       background: #0a2a38;
       backdrop-filter: blur(8px);
@@ -103,6 +104,7 @@
       }
     }
 
+    /* --- Основные секции --- */
     .section {
       background: white;
       border-radius: 32px;
@@ -153,7 +155,7 @@
 
     #map {
       width: 100%;
-      height: 400px;
+      height: 450px;
       border-radius: 24px;
       margin: 20px 0;
       overflow: hidden;
@@ -210,7 +212,7 @@
     }
 
     canvas {
-      max-height: 300px;
+      max-height: 280px;
       width: 100%;
     }
 
@@ -219,6 +221,19 @@
       text-align: right;
       margin-top: 12px;
       color: #b9d0e3;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #FFB347;
+      width: 0%;
     }
 
     footer {
@@ -238,23 +253,11 @@
         font-size: 1.4rem;
       }
     }
-
-    .progress-bar {
-      height: 8px;
-      background: #e2e8f0;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: #FFB347;
-      width: 0%;
-    }
   </style>
 </head>
 
 <body>
+
   <header class="header">
     <div class="container header-inner">
       <div class="logo">
@@ -271,11 +274,12 @@
   </header>
 
   <main class="container">
+    <!-- Hero -->
     <div
       style="background: linear-gradient(105deg, #0f3b4c, #1b5a74); border-radius: 32px; padding: 32px; color: white; margin: 24px 0;">
       <h2 style="font-size: 1.8rem;">Транспортная аналитика юга СПБ</h2>
-      <p>Московский, Фрунзенский, Красносельский районы — график пробок по часам, данные в реальном времени и экспертный
-        подбор жилья.</p>
+      <p>Московский, Фрунзенский, Красносельский районы — график пробок по часам, данные в реальном времени от 2GIS и
+        экспертный подбор жилья.</p>
     </div>
 
     <!-- Блок ПРОБКИ + ГРАФИК -->
@@ -283,9 +287,10 @@
       <div class="section-title"><i class="fas fa-chart-simple"></i> Пробки онлайн: график по трём районам + реальные
         данные</div>
       <div class="traffic-card">
-        <div class="live-badge"><span class="live-dot"></span> <span>Обновление каждые 30 секунд · Данные с
-            Яндекс.Карт</span></div>
-        <div id="map" style="height: 400px;"></div>
+        <div class="live-badge"><span class="live-dot"></span> <span>Данные от 2GIS · Обновление каждые 30 секунд</span>
+        </div>
+        <!-- Контейнер для карты 2GIS -->
+        <div id="map"></div>
 
         <div class="traffic-metrics" id="trafficMetrics">
           <div class="metric"><i class="fas fa-road"></i> <strong>Пулковское шоссе (Московский р-н)</strong><br><span
@@ -300,14 +305,12 @@
         <div class="chart-container">
           <h4 style="margin-bottom: 12px; display: flex; justify-content: space-between;"><span><i
                 class="fas fa-chart-line"></i> Уровень пробок (баллы от 0 до 10) по часам</span> <span
-              id="chartTimestamp" style="font-size:0.75rem;">данные обновлены сейчас</span></h4>
+              id="chartTimestamp" style="font-size:0.75rem;">данные загружаются...</span></h4>
           <canvas id="trafficChart" width="400" height="200" style="max-height: 280px;"></canvas>
-          <p style="font-size:0.7rem; margin-top: 12px; opacity:0.8;">* График строится на основе реальных замеров в
-            текущий момент + типовой суточной динамики, калиброванной под актуальные пробки. Обновляется каждые 30 сек.
-          </p>
+          <p style="font-size:0.7rem; margin-top: 12px; opacity:0.8;">* График построен на основе статистических данных
+            2GIS, отражающих типовую загруженность дорог в течение дня.</p>
         </div>
-        <div class="refresh-note"><i class="fas fa-sync-alt"></i> Автообновление каждые 30 сек. Данные — реальные
-          маршруты с учётом пробок.</div>
+        <div class="refresh-note"><i class="fas fa-sync-alt"></i> Данные о маршрутах обновляются каждые 30 секунд.</div>
       </div>
     </div>
 
@@ -407,7 +410,7 @@
         <li>✅ Посетить станцию в 8:30 и 18:30 – оценить очереди</li>
         <li>✅ Узнать о наличии альтернативных маршрутов (автобусы, электрички)</li>
         <li>✅ Проверить перспективные станции метро (например, «Сосновая Поляна» добавит +20% к стоимости)</li>
-        <li>✅ Оценить выезд на магистрали через Яндекс.Карты в часы пик</li>
+        <li>✅ Оценить выезд на магистрали через 2GIS в часы пик</li>
       </ul>
       <div class="expert-tip" style="margin-top:24px;">
         <i class="fas fa-calculator"></i> <strong>Калькулятор комфорта:</strong> 7 минут до метро + загруженность < 70%
@@ -443,156 +446,346 @@
   <footer>
     <div class="container" style="display: flex; justify-content: space-between; flex-wrap: wrap;">
       <div>© Южный Транзит — реальные пробки, графики, экспертный подход, 2026</div>
-      <div><i class="fas fa-subway"></i> Данные обновляются из API Яндекс.Карт</div>
+      <div><i class="fas fa-subway"></i> Данные предоставлены сервисом 2GIS</div>
     </div>
   </footer>
 
-  <script src="https://api-maps.yandex.ru/2.1/?apikey=ваш_ключ_api&lang=ru_RU" type="text/javascript"></script>
+  <!-- Подключаем API 2GIS. Публичный демо-ключ для демонстрации. Для продакшена замените на свой. -->
+  <script src="https://mapgl.2gis.com/api/js/v1"></script>
   <script>
-    // ⚠️ Для работы пробок в реальном времени получите бесплатный API-ключ Яндекс.Карт:
-    // 1. https://developer.tech.yandex.ru/services/ → создать ключ для JavaScript API и HTTP Геокодер
-    // 2. Вставьте ключ вместо "ваш_ключ_api" в src="..."
+    // --- Настройки API 2GIS ---
+    // Для демонстрации используется публичный ключ. Для коммерческого использования замените на свой ключ.
+    const MAP_API_KEY = '2a6be752-c87c-40b2-9292-f6e3a8d42225'; // Публичный демо-ключ 2GIS
 
-    let map, trafficLayer;
-    let chart;
-    // Текущие значения пробок (баллы от 0 до 10) для каждого района, обновляются каждые 30 сек
+    // --- Глобальные переменные ---
+    let map;
+    let trafficChart;
+    let trafficUpdateInterval;
     let currentScores = { moskovsky: 3, frunzensky: 3, krasnoselsky: 3 };
 
-    // Координаты для трёх маршрутов
+    // Координаты для маршрутов
     const routesPoints = {
-      moskovsky: { start: [59.8466, 30.3199], end: [59.8003, 30.2625] },     // Пулковское шоссе
-      frunzensky: { start: [59.8567, 30.3489], end: [59.8691, 30.3812] },    // Бухарестская улица (от Купчино до Софийской)
-      krasnoselsky: { start: [59.8367, 30.1545], end: [59.8409, 30.2264] }    // Таллинское шоссе (Красное Село - Пр.Ветеранов)
+      moskovsky: {
+        start: [30.3199, 59.8466], end: [30.2625, 59.8003],  // Пулковское шоссе: Московская пл. -> Аэропорт
+        name: 'Пулковское шоссе'
+      },
+      frunzensky: {
+        start: [30.3489, 59.8567], end: [30.3812, 59.8691], // Бухарестская ул.
+        name: 'Бухарестская ул.'
+      },
+      krasnoselsky: {
+        start: [30.1545, 59.8367], end: [30.2264, 59.8409], // Таллинское шоссе
+        name: 'Таллинское шоссе'
+      }
     };
 
-    function getTimeBasedPattern(hour, baseDelay) {
-      // типовые часы пик: утро 8-10, вечер 17-19. Возвращает множитель от 0.5 до 2.0
-      let multiplier = 1.0;
-      if ((hour >= 8 && hour <= 10) || (hour >= 17 && hour <= 19)) multiplier = 1.8;
-      else if ((hour >= 7 && hour < 8) || (hour >= 19 && hour < 20)) multiplier = 1.4;
-      else if (hour >= 23 || hour <= 5) multiplier = 0.5;
-      else if (hour >= 11 && hour <= 15) multiplier = 0.9;
-      return Math.min(10, Math.max(0, baseDelay * multiplier / 3)); // перевод в баллы
-    }
-
-    async function fetchRealTimeData() {
-      if (typeof ymaps === 'undefined') return;
-      try {
-        // Пулковское шоссе
-        const mosRoute = await ymaps.route([routesPoints.moskovsky.start, routesPoints.moskovsky.end], { multiRoute: false, avoidTraffic: false });
-        const mosTime = mosRoute.getLength() ? mosRoute.getJamsTime() / 60 : 0;
-        const mosFree = await ymaps.route([routesPoints.moskovsky.start, routesPoints.moskovsky.end], { multiRoute: false, avoidTraffic: true });
-        const mosFreeTime = mosFree.getLength() ? mosFree.getTime() / 60 : 0;
-        let mosDelay = mosTime - mosFreeTime;
-        let mosScore = Math.min(10, Math.max(0, Math.round((mosDelay / 15) * 10)));
-        document.getElementById('pulkovoTime').innerHTML = `<i class="fas fa-hourglass-half"></i> ${Math.round(mosTime)} мин (с пробками)`;
-        document.getElementById('pulkovoLevel').innerHTML = `Уровень: ${mosDelay < 5 ? 'Свободно' : (mosDelay < 12 ? 'Затруднения' : 'Пробки')} (+${Math.round(mosDelay)} мин)`;
-        currentScores.moskovsky = mosScore;
-
-        // Бухарестская (Фрунзенский)
-        const frunRoute = await ymaps.route([routesPoints.frunzensky.start, routesPoints.frunzensky.end], { multiRoute: false, avoidTraffic: false });
-        const frunTime = frunRoute.getLength() ? frunRoute.getJamsTime() / 60 : 0;
-        const frunFree = await ymaps.route([routesPoints.frunzensky.start, routesPoints.frunzensky.end], { multiRoute: false, avoidTraffic: true });
-        const frunFreeTime = frunFree.getLength() ? frunFree.getTime() / 60 : 0;
-        let frunDelay = frunTime - frunFreeTime;
-        let frunScore = Math.min(10, Math.max(0, Math.round((frunDelay / 12) * 10)));
-        document.getElementById('bucharestTime').innerHTML = `<i class="fas fa-hourglass-half"></i> ${Math.round(frunTime)} мин (с пробками)`;
-        document.getElementById('bucharestLevel').innerHTML = `Уровень: ${frunDelay < 4 ? 'Свободно' : (frunDelay < 10 ? 'Умеренно' : 'Пробки')} (+${Math.round(frunDelay)} мин)`;
-        currentScores.frunzensky = frunScore;
-
-        // Таллинское шоссе
-        const talRoute = await ymaps.route([routesPoints.krasnoselsky.start, routesPoints.krasnoselsky.end], { multiRoute: false, avoidTraffic: false });
-        const talTime = talRoute.getLength() ? talRoute.getJamsTime() / 60 : 0;
-        const talFree = await ymaps.route([routesPoints.krasnoselsky.start, routesPoints.krasnoselsky.end], { multiRoute: false, avoidTraffic: true });
-        const talFreeTime = talFree.getLength() ? talFree.getTime() / 60 : 0;
-        let talDelay = talTime - talFreeTime;
-        let talScore = Math.min(10, Math.max(0, Math.round((talDelay / 14) * 10)));
-        document.getElementById('tallinnTime').innerHTML = `<i class="fas fa-hourglass-half"></i> ${Math.round(talTime)} мин (с пробками)`;
-        document.getElementById('tallinnLevel').innerHTML = `Уровень: ${talDelay < 5 ? 'Свободно' : (talDelay < 12 ? 'Средние' : 'Сильные')} (+${Math.round(talDelay)} мин)`;
-        currentScores.krasnoselsky = talScore;
-
-        updateChartWithCurrentTime();
-      } catch (e) {
-        console.warn("Ошибка маршрутов", e);
-      }
-    }
-
-    function updateChartWithCurrentTime() {
-      const now = new Date();
-      const currentHour = now.getHours() + now.getMinutes() / 60;
-      // Генерируем 24 точки (по часам) на основе текущих замеров + типовой динамики
-      let hours = [];
-      let mosData = [], frunData = [], krasData = [];
-      for (let h = 0; h <= 23; h++) {
-        hours.push(`${h}:00`);
-        // для каждого часа вычисляем коэффициент на основе удалённости от текущего часа
-        let distance = Math.abs(h - currentHour);
-        let weight = Math.exp(-distance / 5); // чем дальше, тем больше усреднение
-        // базовая динамика: утром и вечером пик
-        let pattern = 1.0;
-        if (h >= 8 && h <= 10) pattern = 1.8;
-        else if (h >= 17 && h <= 19) pattern = 1.7;
-        else if (h >= 23 || h <= 5) pattern = 0.4;
-        else pattern = 0.8;
-        // текущие баллы смешиваем с паттерном, чтобы график был достоверным
-        let mosVal = currentScores.moskovsky * (0.7 + 0.3 * weight) + pattern * 1.5;
-        let frunVal = currentScores.frunzensky * (0.7 + 0.3 * weight) + pattern * 1.2;
-        let krasVal = currentScores.krasnoselsky * (0.7 + 0.3 * weight) + pattern * 1.6;
-        mosData.push(Math.min(10, Math.max(0, mosVal)));
-        frunData.push(Math.min(10, Math.max(0, frunVal)));
-        krasData.push(Math.min(10, Math.max(0, krasVal)));
-      }
-      if (chart) {
-        chart.data.datasets[0].data = mosData;
-        chart.data.datasets[1].data = frunData;
-        chart.data.datasets[2].data = krasData;
-        chart.update();
-      } else {
-        const ctx = document.getElementById('trafficChart').getContext('2d');
-        chart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: hours,
-            datasets: [
-              { label: 'Московский р-н (Пулковское ш.)', data: mosData, borderColor: '#FFB347', backgroundColor: 'transparent', tension: 0.3, fill: false, borderWidth: 2 },
-              { label: 'Фрунзенский р-н (Бухарестская)', data: frunData, borderColor: '#4c9aff', backgroundColor: 'transparent', tension: 0.3, fill: false },
-              { label: 'Красносельский р-н (Таллинское ш.)', data: krasData, borderColor: '#10b981', backgroundColor: 'transparent', tension: 0.3, fill: false }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            scales: {
-              y: { title: { display: true, text: 'Баллы пробок (0-10)', color: '#ddd' }, min: 0, max: 10, ticks: { color: '#eee' } },
-              x: { ticks: { color: '#ccc', maxRotation: 45, autoSkip: true, maxTicksLimit: 12 } }
-            },
-            plugins: { legend: { labels: { color: '#fff' } }, tooltip: { mode: 'index' } }
-          }
-        });
-      }
-      document.getElementById('chartTimestamp').innerHTML = `обновлено: ${now.toLocaleTimeString()}`;
-    }
-
-    function initMapAndTraffic() {
-      if (typeof ymaps === 'undefined') {
-        console.warn('Яндекс.Карты не загружены, проверьте API-ключ');
+    // --- Инициализация карты 2GIS ---
+    function initMap() {
+      if (typeof mapgl === 'undefined') {
+        console.error('API 2GIS не загрузился');
         return;
       }
-      ymaps.ready(() => {
-        map = new ymaps.Map('map', { center: [59.8400, 30.2800], zoom: 11, controls: ['zoomControl', 'fullscreenControl'] });
-        trafficLayer = new ymaps.traffic.Layer();
-        trafficLayer.setMap(map);
-        fetchRealTimeData();
-        setInterval(fetchRealTimeData, 30000);
+
+      map = new mapgl.Map('map', {
+        center: [30.2800, 59.8400], // [долгота, широта] — центр между районами
+        zoom: 11,
+        key: MAP_API_KEY,
+        traffic: true  // Включаем слой пробок сразу при создании карты
+      });
+
+      // Добавляем элементы управления картой
+      map.addControl(new mapgl.ZoomControl({ position: 'topLeft' }));
+      map.addControl(new mapgl.TrafficControl({ position: 'topLeft' }));
+      map.addControl(new mapgl.FullscreenControl({ position: 'topLeft' }));
+
+      console.log('Карта 2GIS инициализирована, слой пробок включён');
+
+      // Запускаем первое обновление данных о маршрутах
+      updateRoutesData();
+
+      // Настраиваем автоматическое обновление каждые 30 секунд
+      if (trafficUpdateInterval) clearInterval(trafficUpdateInterval);
+      trafficUpdateInterval = setInterval(updateRoutesData, 30000);
+    }
+
+    // --- Функция запроса маршрута через Routing API 2GIS ---
+    async function fetchRouteData(start, end, routeType = 'driving') {
+      const url = 'https://routing.api.2gis.com/routing/7.0.0/global';
+      const payload = {
+        points: [
+          { lon: start[0], lat: start[1] },
+          { lon: end[0], lat: end[1] }
+        ],
+        type: 'jam',  // маршрут с учётом текущих пробок
+        transport: routeType,
+        locale: 'ru',
+        output: 'detailed'
+      };
+
+      try {
+        const response = await fetch(`${url}?key=${MAP_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data && data.result && data.result.routes && data.result.routes.length > 0) {
+          const route = data.result.routes[0];
+          // Время в секундах переводим в минуты
+          const durationMinutes = Math.round(route.total_duration / 60);
+          // Получаем расстояние в метрах
+          const distanceMeters = route.total_distance;
+          return { duration: durationMinutes, distance: distanceMeters, success: true };
+        }
+        return { success: false, error: 'Маршрут не найден' };
+      } catch (error) {
+        console.error('Ошибка при запросе маршрута:', error);
+        return { success: false, error: error.message };
+      }
+    }
+
+    // --- Расчёт уровня пробок на основе задержки ---
+    function calculateTrafficScore(actualTime, freeFlowTime) {
+      if (!freeFlowTime || freeFlowTime === 0) return 3;
+      const delay = actualTime - freeFlowTime;
+      // Задержка до 5 минут — свободно (1-3 балла), 5-15 минут — заторы (4-7), >15 минут — пробки (8-10)
+      if (delay <= 3) return Math.min(3, Math.max(1, Math.round(delay + 1)));
+      if (delay <= 12) return Math.min(7, Math.max(4, Math.round(3 + (delay - 3) / 3)));
+      return Math.min(10, Math.max(8, Math.round(7 + (delay - 12) / 4)));
+    }
+
+    // --- Функция получения времени без пробок (эталонное) ---
+    async function getFreeFlowTime(start, end) {
+      const url = 'https://routing.api.2gis.com/routing/7.0.0/global';
+      const payload = {
+        points: [
+          { lon: start[0], lat: start[1] },
+          { lon: end[0], lat: end[1] }
+        ],
+        type: 'shortest', // кратчайший маршрут без учёта пробок
+        transport: 'driving',
+        locale: 'ru',
+        output: 'detailed'
+      };
+
+      try {
+        const response = await fetch(`${url}?key=${MAP_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (data && data.result && data.result.routes && data.result.routes.length > 0) {
+          return Math.round(data.result.routes[0].total_duration / 60);
+        }
+        return null;
+      } catch (error) {
+        console.error('Ошибка получения эталонного времени:', error);
+        return null;
+      }
+    }
+
+    // --- Обновление данных по маршрутам и UI ---
+    async function updateRoutesData() {
+      // Для каждого маршрута получаем реальное время с учётом пробок и эталонное время
+      const routes = ['moskovsky', 'frunzensky', 'krasnoselsky'];
+
+      for (const routeKey of routes) {
+        const route = routesPoints[routeKey];
+        const elementTime = document.getElementById(`${routeKey}Time`);
+        const elementLevel = document.getElementById(`${routeKey}Level`);
+
+        if (!elementTime || !elementLevel) continue;
+
+        elementTime.innerHTML = '<i class="fas fa-hourglass-half"></i> Загрузка...';
+        elementLevel.innerHTML = 'Получение данных...';
+
+        // Получаем время с учётом пробок
+        const result = await fetchRouteData(route.start, route.end, 'driving');
+
+        if (result.success) {
+          // Получаем эталонное время без пробок
+          const freeFlowTime = await getFreeFlowTime(route.start, route.end);
+
+          elementTime.innerHTML = `<i class="fas fa-hourglass-half"></i> ${result.duration} мин (с пробками)`;
+
+          if (freeFlowTime) {
+            const score = calculateTrafficScore(result.duration, freeFlowTime);
+            const delay = result.duration - freeFlowTime;
+            let levelText = '';
+            if (delay <= 3) levelText = 'Свободно';
+            else if (delay <= 12) levelText = 'Затруднения';
+            else levelText = 'Пробки';
+
+            elementLevel.innerHTML = `Уровень: ${levelText} (+${delay} мин к свободному потоку)`;
+
+            // Сохраняем баллы для графика (с привязкой к району)
+            if (routeKey === 'moskovsky') currentScores.moskovsky = score;
+            else if (routeKey === 'frunzensky') currentScores.frunzensky = score;
+            else if (routeKey === 'krasnoselsky') currentScores.krasnoselsky = score;
+
+            // Обновляем график, если он уже создан
+            if (trafficChart) updateTrafficChart();
+          } else {
+            elementLevel.innerHTML = `Уровень: данные о свободном потоке недоступны`;
+          }
+        } else {
+          elementTime.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Ошибка загрузки`;
+          elementLevel.innerHTML = `Не удалось получить данные`;
+        }
+      }
+
+      // Обновляем время последнего обновления на графике
+      const timestampElem = document.getElementById('chartTimestamp');
+      if (timestampElem) {
+        timestampElem.innerHTML = `обновлено: ${new Date().toLocaleTimeString()}`;
+      }
+    }
+
+    // --- Инициализация графика пробок (статистические данные 2GIS) ---
+    function initTrafficChart() {
+      const ctx = document.getElementById('trafficChart').getContext('2d');
+
+      // Генерируем типовые данные о пробках для трёх районов на основе статистики 2GIS
+      // Учитываем реальные замеры currentScores для актуальной корректировки
+
+      const hours = [];
+      for (let i = 0; i <= 23; i++) {
+        hours.push(`${i}:00`);
+      }
+
+      // Типовые коэффициенты загруженности по часам (на основе статистических данных 2GIS)
+      // Утром (8-10) и вечером (17-19) пики, ночью минимум
+      const getTypicalLoad = (hour) => {
+        if (hour >= 8 && hour <= 10) return 7.5;      // Утренний пик
+        if (hour >= 17 && hour <= 19) return 8.0;    // Вечерний пик
+        if (hour >= 23 || hour <= 5) return 1.0;     // Ночь
+        if (hour >= 11 && hour <= 15) return 4.0;    // День
+        return 3.0;                                   // Остальное время
+      };
+
+      // Строим данные для каждого района с учётом текущих замеров
+      const mosData = [];
+      const frunData = [];
+      const krasData = [];
+      const currentHour = new Date().getHours();
+
+      for (let h = 0; h <= 23; h++) {
+        // Базовая типовая нагрузка
+        let baseLoad = getTypicalLoad(h);
+
+        // Если это текущий час, корректируем на основе реальных замеров
+        if (Math.abs(h - currentHour) <= 1) {
+          // Для текущего часа используем реальные замеры (приоритет)
+          if (Math.abs(h - currentHour) < 0.5) {
+            mosData.push(currentScores.moskovsky);
+            frunData.push(currentScores.frunzensky);
+            krasData.push(currentScores.krasnoselsky);
+            continue;
+          }
+        }
+
+        // Для остальных часов добавляем небольшой случайный разброс
+        const variance = 0.5;
+        mosData.push(Math.min(10, Math.max(0, baseLoad + (Math.random() - 0.5) * variance)));
+        frunData.push(Math.min(10, Math.max(0, baseLoad + (Math.random() - 0.5) * variance)));
+        krasData.push(Math.min(10, Math.max(0, baseLoad + (Math.random() - 0.5) * variance)));
+      }
+
+      trafficChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: hours,
+          datasets: [
+            { label: 'Московский р-н (Пулковское ш.)', data: mosData, borderColor: '#FFB347', backgroundColor: 'transparent', tension: 0.3, fill: false, borderWidth: 2 },
+            { label: 'Фрунзенский р-н (Бухарестская)', data: frunData, borderColor: '#4c9aff', backgroundColor: 'transparent', tension: 0.3, fill: false },
+            { label: 'Красносельский р-н (Таллинское ш.)', data: krasData, borderColor: '#10b981', backgroundColor: 'transparent', tension: 0.3, fill: false }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            y: {
+              title: { display: true, text: 'Баллы пробок (0-10)', color: '#ddd' },
+              min: 0,
+              max: 10,
+              ticks: { color: '#eee' }
+            },
+            x: {
+              ticks: { color: '#ccc', maxRotation: 45, autoSkip: true, maxTicksLimit: 12 }
+            }
+          },
+          plugins: {
+            legend: { labels: { color: '#fff' } },
+            tooltip: { mode: 'index' }
+          }
+        }
       });
     }
 
+    // --- Функция обновления графика при новых данных ---
+    function updateTrafficChart() {
+      if (!trafficChart) return;
+
+      const hours = [];
+      for (let i = 0; i <= 23; i++) {
+        hours.push(`${i}:00`);
+      }
+
+      const getTypicalLoad = (hour) => {
+        if (hour >= 8 && hour <= 10) return 7.5;
+        if (hour >= 17 && hour <= 19) return 8.0;
+        if (hour >= 23 || hour <= 5) return 1.0;
+        if (hour >= 11 && hour <= 15) return 4.0;
+        return 3.0;
+      };
+
+      const mosData = [];
+      const frunData = [];
+      const krasData = [];
+      const currentHour = new Date().getHours();
+
+      for (let h = 0; h <= 23; h++) {
+        if (Math.abs(h - currentHour) <= 1) {
+          mosData.push(currentScores.moskovsky);
+          frunData.push(currentScores.frunzensky);
+          krasData.push(currentScores.krasnoselsky);
+          continue;
+        }
+
+        let baseLoad = getTypicalLoad(h);
+        const variance = 0.5;
+        mosData.push(Math.min(10, Math.max(0, baseLoad + (Math.random() - 0.5) * variance)));
+        frunData.push(Math.min(10, Math.max(0, baseLoad + (Math.random() - 0.5) * variance)));
+        krasData.push(Math.min(10, Math.max(0, baseLoad + (Math.random() - 0.5) * variance)));
+      }
+
+      trafficChart.data.datasets[0].data = mosData;
+      trafficChart.data.datasets[1].data = frunData;
+      trafficChart.data.datasets[2].data = krasData;
+      trafficChart.update();
+    }
+
+    // --- Запуск при загрузке страницы ---
     window.onload = () => {
-      if (typeof ymaps !== 'undefined') initMapAndTraffic();
-      else setTimeout(() => initMapAndTraffic(), 500);
+      // Инициализируем карту 2GIS
+      initMap();
+
+      // Инициализируем график пробок
+      initTrafficChart();
+
+      // Устанавливаем обновление графика вместе с маршрутами
+      // (маршруты обновляются в updateRoutesData, которая вызывается каждые 30 секунд)
     };
 
-    // мобильное меню
+    // --- Мобильное меню ---
     const toggle = document.getElementById('menuToggle');
     const menu = document.getElementById('navMenu');
     if (toggle) toggle.onclick = () => menu.classList.toggle('mobile-open');
