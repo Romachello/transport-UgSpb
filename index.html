@@ -199,6 +199,7 @@
       background: #2c4f64;
       border-radius: 20px;
       padding: 16px;
+      min-width: 200px;
     }
 
     .chart-container {
@@ -206,11 +207,18 @@
       border-radius: 24px;
       padding: 16px;
       margin-top: 20px;
+      overflow-x: auto;
+    }
+
+    .chart-wrapper {
+      min-width: 600px;
+      width: 100%;
     }
 
     canvas {
-      max-height: 280px;
+      max-height: 300px;
       width: 100%;
+      height: auto;
     }
 
     .refresh-note {
@@ -233,6 +241,34 @@
       width: 0%;
     }
 
+    /* Таблица с чёткими линиями */
+    .travel-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #F9FCFE;
+      border-radius: 20px;
+      overflow: hidden;
+      margin: 20px 0;
+    }
+
+    .travel-table th,
+    .travel-table td {
+      border: 1px solid #d0dbe8;
+      padding: 12px 16px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .travel-table th {
+      background: #EFF6FA;
+      font-weight: 700;
+      color: #1a4c6e;
+    }
+
+    .travel-table tr:nth-child(even) {
+      background-color: #f8fafd;
+    }
+
     footer {
       background: #0a2a38;
       color: #bdd3e0;
@@ -248,6 +284,12 @@
 
       .section-title {
         font-size: 1.4rem;
+      }
+
+      .travel-table th,
+      .travel-table td {
+        padding: 8px 10px;
+        font-size: 0.85rem;
       }
     }
   </style>
@@ -284,7 +326,6 @@
       <div class="traffic-card">
         <div class="live-badge"><span class="live-dot"></span> <span>Карта 2GIS со слоем пробок (бесплатно, без
             ключа)</span></div>
-        <!-- Встраиваем карту 2GIS через iframe — работает всегда, без API-ключей -->
         <iframe class="map-iframe"
           src="https://map.2gis.ru/embed?baseLayer=base&zoom=12&center=30.2800,59.8400&markers=30.2800,59.8400&traffic=true"
           frameborder="0"></iframe>
@@ -298,21 +339,25 @@
               р-н)</strong><br><span id="tallinnTime">—</span><br><span id="tallinnLevel">Загрузка...</span></div>
         </div>
 
-        <!-- График пробок по районам в зависимости от времени суток -->
+        <!-- График пробок с горизонтальной прокруткой для мобильных -->
         <div class="chart-container">
-          <h4 style="margin-bottom: 12px; display: flex; justify-content: space-between;"><span><i
-                class="fas fa-chart-line"></i> Уровень пробок (баллы от 0 до 10) по часам</span> <span
-              id="chartTimestamp" style="font-size:0.75rem;">данные обновляются...</span></h4>
-          <canvas id="trafficChart" width="400" height="200" style="max-height: 280px;"></canvas>
+          <h4 style="margin-bottom: 12px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+            <span><i class="fas fa-chart-line"></i> Уровень пробок (баллы от 0 до 10) по часам</span>
+            <span id="chartTimestamp" style="font-size:0.75rem;">данные обновляются...</span>
+          </h4>
+          <div class="chart-wrapper">
+            <canvas id="trafficChart" width="800" height="300"
+              style="width:100%; height:auto; max-height:300px;"></canvas>
+          </div>
           <p style="font-size:0.7rem; margin-top: 12px; opacity:0.8;">* График построен на основе типовой суточной
-            динамики и корректируется по текущему времени.</p>
+            динамики и корректируется по текущему времени. Листайте вправо, чтобы посмотреть все часы.</p>
         </div>
         <div class="refresh-note"><i class="fas fa-sync-alt"></i> Данные о пробках и график обновляются каждые 30 секунд
           (имитация реальной ситуации).</div>
       </div>
     </div>
 
-    <!-- ЭКСПЕРТНЫЙ ГИД (максимально подробный) -->
+    <!-- ЭКСПЕРТНЫЙ ГИД -->
     <div class="section" id="expert-guide">
       <div class="section-title"><i class="fas fa-lightbulb"></i> Экспертный гид: выбираем квартиру с умом</div>
       <div class="expert-tip">
@@ -358,9 +403,9 @@
 
       <h3 style="font-size: 1.5rem; margin: 28px 0 12px;"><i class="fas fa-clock"></i> 2. Таблица времени до ключевых
         точек (с учётом пробок)</h3>
-      <table style="width:100%; border-collapse:collapse; background:#F9FCFE; border-radius:20px;">
+      <table class="travel-table">
         <thead>
-          <tr style="background:#EFF6FA;">
+          <tr>
             <th>Откуда</th>
             <th>До Невского пр. (метро)</th>
             <th>До аэропорта Пулково (авто, час пик)</th>
@@ -369,19 +414,19 @@
         </thead>
         <tbody>
           <tr>
-            <td>Московская</td>
+            <td><strong>Московская</strong></td>
             <td>16 мин</td>
             <td>20–25 мин / 35–40 мин (пробка)</td>
             <td>12 мин</td>
           </tr>
           <tr>
-            <td>Купчино</td>
+            <td><strong>Купчино</strong></td>
             <td>21 мин</td>
             <td>35–50 мин</td>
             <td>18 мин</td>
           </tr>
           <tr>
-            <td>Красное Село (Таллинское ш.)</td>
+            <td><strong>Красное Село (Таллинское ш.)</strong></td>
             <td>—</td>
             <td>45–60 мин через КАД</td>
             <td>—</td>
@@ -454,58 +499,43 @@
     let trafficChart;
     let updateInterval;
 
-    // Функция получения текущего уровня пробок (0-10) для заданного района в зависимости от времени
     function getTrafficScore(district, currentHour) {
-      // Базовая динамика: утренний пик (8-10), вечерний пик (17-19)
       let baseScore = 3;
       if (currentHour >= 8 && currentHour <= 10) baseScore = 7;
       else if (currentHour >= 17 && currentHour <= 19) baseScore = 8;
       else if (currentHour >= 23 || currentHour <= 5) baseScore = 1;
       else if (currentHour >= 11 && currentHour <= 15) baseScore = 4;
 
-      // Корректировка по району
-      if (district === 'moskovsky') baseScore += 0.5;  // Пулковское шоссе чуть загруженнее
+      if (district === 'moskovsky') baseScore += 0.5;
       if (district === 'krasnoselsky') baseScore += 0.2;
-      if (district === 'frunzensky') baseScore -= 0.3; // Бухарестская чуть свободнее
+      if (district === 'frunzensky') baseScore -= 0.3;
 
-      // Добавляем случайные колебания ±1.5 балла для реализма
       const variance = (Math.random() - 0.5) * 2.5;
       let finalScore = Math.min(10, Math.max(0, baseScore + variance));
       return Math.round(finalScore * 10) / 10;
     }
 
-    // Функция получения времени в пути (минуты) на основе баллов пробок
     function getTravelTime(baseFreeTime, score) {
-      // Зависимость: при score=0 -> freeTime, при score=10 -> freeTime * 2.5
       const multiplier = 1 + (score / 10) * 1.5;
       return Math.round(baseFreeTime * multiplier);
     }
 
-    // Обновление метрик (блоки с временем и уровнем пробок)
     function updateMetrics() {
       const now = new Date();
       const hour = now.getHours() + now.getMinutes() / 60;
 
-      // Базовое свободное время для каждого маршрута (в минутах)
-      const freeTimes = {
-        moskovsky: 18,
-        frunzensky: 14,
-        krasnoselsky: 22
-      };
-
+      const freeTimes = { moskovsky: 18, frunzensky: 14, krasnoselsky: 22 };
       const scores = {
         moskovsky: getTrafficScore('moskovsky', hour),
         frunzensky: getTrafficScore('frunzensky', hour),
         krasnoselsky: getTrafficScore('krasnoselsky', hour)
       };
-
       const travelTimes = {
         moskovsky: getTravelTime(freeTimes.moskovsky, scores.moskovsky),
         frunzensky: getTravelTime(freeTimes.frunzensky, scores.frunzensky),
         krasnoselsky: getTravelTime(freeTimes.krasnoselsky, scores.krasnoselsky)
       };
 
-      // Обновляем DOM
       document.getElementById('pulkovoTime').innerHTML = `<i class="fas fa-hourglass-half"></i> ${travelTimes.moskovsky} мин (с пробками)`;
       let delayMos = travelTimes.moskovsky - freeTimes.moskovsky;
       document.getElementById('pulkovoLevel').innerHTML = `Уровень: ${scores.moskovsky.toFixed(1)} баллов (+${delayMos} мин)`;
@@ -518,13 +548,10 @@
       let delayKras = travelTimes.krasnoselsky - freeTimes.krasnoselsky;
       document.getElementById('tallinnLevel').innerHTML = `Уровень: ${scores.krasnoselsky.toFixed(1)} баллов (+${delayKras} мин)`;
 
-      // Обновляем график с новыми данными (передаём текущие баллы)
       updateChartWithRealTime(scores);
-
       document.getElementById('chartTimestamp').innerHTML = `обновлено: ${now.toLocaleTimeString()}`;
     }
 
-    // График: строим кривые на 24 часа с учётом текущих баллов (подгоняем текущий час)
     let chartInstance = null;
 
     function updateChartWithRealTime(currentScores) {
@@ -534,7 +561,6 @@
       const now = new Date();
       const currentHour = now.getHours() + now.getMinutes() / 60;
 
-      // Функция типового балла для заданного часа (без подстройки)
       function getTypicalScore(hour, districtOffset = 0) {
         let base = 2;
         if (hour >= 8 && hour <= 10) base = 7.2;
@@ -545,21 +571,15 @@
         return Math.min(10, Math.max(0, base + districtOffset));
       }
 
-      // Смещения для районов
       const offsets = { moskovsky: 0.5, frunzensky: -0.3, krasnoselsky: 0.2 };
-
-      const mosData = [];
-      const frunData = [];
-      const krasData = [];
+      const mosData = [], frunData = [], krasData = [];
 
       for (let h = 0; h <= 23; h++) {
-        // Если час совпадает с текущим (с точностью до 0.5), подставляем реальный замер
         if (Math.abs(h - currentHour) < 0.6) {
           mosData.push(currentScores.moskovsky);
           frunData.push(currentScores.frunzensky);
           krasData.push(currentScores.krasnoselsky);
         } else {
-          // Для остальных часов — типовое значение + небольшой случайный разброс
           let mos = getTypicalScore(h, offsets.moskovsky) + (Math.random() - 0.5) * 0.8;
           let frun = getTypicalScore(h, offsets.frunzensky) + (Math.random() - 0.5) * 0.8;
           let kras = getTypicalScore(h, offsets.krasnoselsky) + (Math.random() - 0.5) * 0.8;
@@ -581,32 +601,30 @@
           data: {
             labels: hours,
             datasets: [
-              { label: 'Московский р-н (Пулковское ш.)', data: mosData, borderColor: '#FFB347', backgroundColor: 'transparent', tension: 0.3, fill: false, borderWidth: 2 },
-              { label: 'Фрунзенский р-н (Бухарестская)', data: frunData, borderColor: '#4c9aff', backgroundColor: 'transparent', tension: 0.3, fill: false },
-              { label: 'Красносельский р-н (Таллинское ш.)', data: krasData, borderColor: '#10b981', backgroundColor: 'transparent', tension: 0.3, fill: false }
+              { label: 'Московский р-н (Пулковское ш.)', data: mosData, borderColor: '#FFB347', backgroundColor: 'transparent', tension: 0.3, fill: false, borderWidth: 2, pointRadius: 1 },
+              { label: 'Фрунзенский р-н (Бухарестская)', data: frunData, borderColor: '#4c9aff', backgroundColor: 'transparent', tension: 0.3, fill: false, pointRadius: 1 },
+              { label: 'Красносельский р-н (Таллинское ш.)', data: krasData, borderColor: '#10b981', backgroundColor: 'transparent', tension: 0.3, fill: false, pointRadius: 1 }
             ]
           },
           options: {
             responsive: true,
             maintainAspectRatio: true,
             scales: {
-              y: { title: { display: true, text: 'Баллы пробок (0-10)', color: '#ddd' }, min: 0, max: 10, ticks: { color: '#eee' } },
+              y: { title: { display: true, text: 'Баллы пробок (0-10)', color: '#ddd' }, min: 0, max: 10, ticks: { color: '#eee', stepSize: 2 } },
               x: { ticks: { color: '#ccc', maxRotation: 45, autoSkip: true, maxTicksLimit: 12 } }
             },
-            plugins: { legend: { labels: { color: '#fff' } }, tooltip: { mode: 'index' } }
+            plugins: { legend: { labels: { color: '#fff', font: { size: 11 } } }, tooltip: { mode: 'index' } }
           }
         });
       }
     }
 
-    // Инициализация: запускаем обновление каждые 30 секунд
     function init() {
       updateMetrics();
       if (updateInterval) clearInterval(updateInterval);
       updateInterval = setInterval(updateMetrics, 30000);
     }
 
-    // Мобильное меню
     const toggle = document.getElementById('menuToggle');
     const menu = document.getElementById('navMenu');
     if (toggle) toggle.onclick = () => menu.classList.toggle('mobile-open');
